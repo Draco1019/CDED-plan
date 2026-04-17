@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CDED Meal Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #F7F3EC;
+    --warm-white: #FDFAF6;
+    --sage: #6B8F71;
+    --sage-light: #E8F0E9;
+    --sage-dark: #3D5C42;
+    --blue: #185FA5;
+    --blue-light: #E6F1FB;
+    --amber: #854F0B;
+    --amber-light: #FAEEDA;
+    --terracotta: #C4714A;
+    --terracotta-light: #F5E8E0;
+    --charcoal: #2C2C28;
+    --muted: #7A7A72;
+    --border: #E2DDD4;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--charcoal); min-height: 100vh; }
+
+  header {
+    background: var(--sage-dark);
+    color: var(--cream);
+    padding: 3rem 2rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before { content:''; position:absolute; top:-60px; left:-60px; width:220px; height:220px; border-radius:50%; background:rgba(255,255,255,0.04); }
+  header::after { content:''; position:absolute; bottom:-40px; right:-40px; width:160px; height:160px; border-radius:50%; background:rgba(255,255,255,0.04); }
+  .header-tag { display:inline-block; font-size:11px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:#A8C5AC; margin-bottom:0.75rem; }
+  header h1 { font-family:'DM Serif Display',serif; font-size:clamp(1.8rem,5vw,3rem); font-weight:400; line-height:1.15; margin-bottom:0.5rem; }
+  header p { font-size:13px; color:#A8C5AC; font-weight:300; }
+
+  nav.phase-nav { display:flex; overflow-x:auto; scrollbar-width:none; background:var(--warm-white); border-bottom:1px solid var(--border); }
+  nav.phase-nav::-webkit-scrollbar { display:none; }
+  .phase-tab { padding:0.9rem 1.5rem; font-size:13px; font-weight:500; color:var(--muted); cursor:pointer; border-bottom:3px solid transparent; white-space:nowrap; background:none; border-top:none; border-left:none; border-right:none; font-family:inherit; transition:all 0.2s; }
+  .phase-tab:hover { color:var(--charcoal); }
+  .phase-tab.active-p1 { color:var(--sage-dark); border-bottom-color:var(--sage-dark); }
+  .phase-tab.active-p2 { color:var(--blue); border-bottom-color:var(--blue); }
+  .phase-tab.active-p3 { color:var(--amber); border-bottom-color:var(--amber); }
+
+  .phase-info-bar { padding:0.65rem 2rem; font-size:12.5px; line-height:1.6; }
+  .phase-info-bar.p1 { background:var(--sage-light); color:var(--sage-dark); }
+  .phase-info-bar.p2 { background:var(--blue-light); color:var(--blue); }
+  .phase-info-bar.p3 { background:var(--amber-light); color:var(--amber); }
+
+  /* Infliximab banner */
+  .infusion-banner { background:var(--terracotta-light); border-bottom:1px solid #e0c4b4; padding:0.7rem 2rem; font-size:12.5px; color:var(--terracotta); display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; }
+  .infusion-banner strong { font-weight:500; }
+
+  .week-tabs { display:flex; gap:0; overflow-x:auto; scrollbar-width:none; padding:0 1.5rem; background:var(--warm-white); border-bottom:1px solid var(--border); }
+  .week-tabs::-webkit-scrollbar { display:none; }
+  .wtab { padding:0.7rem 1.2rem; font-size:12px; font-weight:500; color:var(--muted); border:none; border-bottom:2px solid transparent; background:none; cursor:pointer; font-family:inherit; white-space:nowrap; transition:all 0.15s; }
+  .wtab:hover { color:var(--charcoal); }
+  .wtab.active { color:var(--charcoal); border-bottom-color:var(--charcoal); }
+
+  .content { max-width:1100px; margin:0 auto; padding:1.5rem; }
+
+  .main-layout { display:grid; grid-template-columns:1fr 310px; gap:1.2rem; align-items:start; }
+  @media(max-width:800px){ .main-layout { grid-template-columns:1fr; } }
+
+  .days-col { display:flex; flex-direction:column; gap:8px; }
+
+  .day-card { border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--warm-white); }
+  .day-head { padding:7px 12px; display:flex; align-items:center; gap:8px; }
+  .day-head.p1 { background:var(--sage-dark); }
+  .day-head.p2 { background:var(--blue); }
+  .day-head.p3 { background:var(--amber); }
+  .day-num { font-size:10px; font-weight:500; opacity:0.65; color:white; letter-spacing:0.08em; text-transform:uppercase; }
+  .day-name-label { font-size:14px; font-weight:500; color:white; flex:1; }
+  .day-cal-badge { font-size:11px; color:rgba(255,255,255,0.8); background:rgba(0,0,0,0.15); padding:2px 8px; border-radius:20px; }
+  .infusion-day-tag { font-size:10px; color:white; background:var(--terracotta); padding:2px 7px; border-radius:20px; }
+
+  .meals-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); }
+  .meal-cell { padding:8px 10px; border-right:1px solid var(--border); }
+  .meal-cell:last-child { border-right:none; }
+  .meal-type { font-size:10px; font-weight:500; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:3px; }
+  .meal-desc { font-size:12px; color:var(--charcoal); line-height:1.45; }
+  .meal-cal { font-size:10px; color:var(--muted); margin-top:2px; }
+  @media(max-width:500px){
+    .meals-grid { grid-template-columns:1fr 1fr; }
+    .meal-cell:nth-child(2){ border-right:none; }
+    .meal-cell:nth-child(3){ border-right:1px solid var(--border); border-top:1px solid var(--border); }
+    .meal-cell:nth-child(4){ border-right:none; border-top:1px solid var(--border); }
+  }
+
+  .sidebar { display:flex; flex-direction:column; gap:10px; position:sticky; top:1rem; }
+
+  .cal-card { background:var(--warm-white); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .cal-head { padding:8px 12px; font-size:12px; font-weight:500; color:white; }
+  .cal-head.p1 { background:var(--sage-dark); }
+  .cal-head.p2 { background:var(--blue); }
+  .cal-head.p3 { background:var(--amber); }
+  .cal-body { padding:10px 12px; }
+  .cal-row { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); padding:3px 0; }
+  .cal-total { display:flex; justify-content:space-between; font-size:13px; font-weight:500; padding-top:6px; margin-top:4px; border-top:1px solid var(--border); color:var(--charcoal); }
+
+  .grocery-card { background:var(--warm-white); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .grocery-head { padding:8px 12px; font-size:12px; font-weight:500; color:white; }
+  .grocery-head.p1 { background:var(--sage-dark); }
+  .grocery-head.p2 { background:var(--blue); }
+  .grocery-head.p3 { background:var(--amber); }
+  .grocery-body { padding:10px 12px; }
+  .g-section { margin-bottom:10px; }
+  .g-section:last-child { margin-bottom:0; }
+  .g-cat { font-size:10px; font-weight:500; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:5px; padding-bottom:3px; border-bottom:1px solid var(--border); }
+  .g-item { display:flex; align-items:center; gap:7px; padding:3px 0; font-size:12px; color:var(--charcoal); cursor:pointer; }
+  .g-item input { width:13px; height:13px; cursor:pointer; flex-shrink:0; }
+  .g-item.checked label { text-decoration:line-through; color:var(--muted); }
+  .g-item label { cursor:pointer; flex:1; }
+
+  .infusion-card { background:var(--terracotta-light); border:1px solid #e0c4b4; border-radius:12px; padding:10px 12px; }
+  .infusion-card h4 { font-size:12px; font-weight:500; color:var(--terracotta); margin-bottom:6px; }
+  .infusion-card p { font-size:12px; color:#7a4028; line-height:1.6; }
+
+  .note-card { border-radius:10px; padding:8px 12px; font-size:12px; color:var(--charcoal); line-height:1.6; }
+  .note-card.p1 { background:var(--sage-light); color:var(--sage-dark); }
+  .note-card.p2 { background:var(--blue-light); color:var(--blue); }
+  .note-card.p3 { background:var(--amber-light); color:var(--amber); }
+
+  .cycle-section { margin-top:1.5rem; background:var(--warm-white); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .cycle-head { background:var(--terracotta); color:white; padding:0.8rem 1.2rem; font-size:14px; font-weight:500; }
+  .cycle-body { padding:1.2rem; }
+  .cycle-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; margin-top:0.8rem; }
+  .cycle-card { background:var(--cream); border:1px solid var(--border); border-radius:8px; padding:10px 12px; }
+  .cycle-card h5 { font-size:11px; font-weight:500; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:4px; }
+  .cycle-card p { font-size:12px; line-height:1.55; color:var(--charcoal); }
+  .cycle-card.highlight { border-color:var(--terracotta); background:var(--terracotta-light); }
+  .cycle-card.highlight h5 { color:var(--terracotta); }
+  .timeline { display:flex; gap:0; margin-top:1rem; border-radius:8px; overflow:hidden; border:1px solid var(--border); }
+  .tl-seg { flex:1; padding:8px 6px; text-align:center; font-size:11px; line-height:1.4; }
+  .tl-seg .tl-label { font-weight:500; font-size:10px; text-transform:uppercase; letter-spacing:0.06em; }
+  .tl-seg .tl-sub { font-size:11px; margin-top:2px; opacity:0.85; }
+  .tl-seg.s-p1 { background:#3D5C42; color:#c8e6ca; }
+  .tl-seg.s-p2 { background:#185FA5; color:#BBDEFB; }
+  .tl-seg.s-p3 { background:#854F0B; color:#FFE0B2; }
+  .tl-seg.s-inf { background:var(--terracotta); color:white; }
+
+  @media print { nav.phase-nav, .week-tabs { display:none; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-tag">Crohn's Disease Exclusion Diet</div>
+  <h1>Your CDED Meal Plan</h1>
+  <p>All 3 phases &nbsp;·&nbsp; Weekly grocery lists &nbsp;·&nbsp; Calorie tracking &nbsp;·&nbsp; Synced with your infliximab schedule</p>
+</header>
+
+<div class="infusion-banner">
+  <strong>&#128137; Infliximab (Remicade):</strong> Every 8 weeks &nbsp;·&nbsp; Days marked on each week where your infusion falls. Rest, hydrate, and eat gently around infusion days.
+</div>
+
+<nav class="phase-nav">
+  <button class="phase-tab active-p1" onclick="setPhase(1)">&#127807; Phase 1 &nbsp; Weeks 1–6</button>
+  <button class="phase-tab" onclick="setPhase(2)">&#129379; Phase 2 &nbsp; Weeks 7–12</button>
+  <button class="phase-tab" onclick="setPhase(3)">&#127798; Phase 3 &nbsp; Weeks 13+</button>
+  <button class="phase-tab" onclick="setPhase(4)" style="border-bottom-color:var(--terracotta);color:var(--terracotta);" id="cycle-tab">&#128137; Infliximab &amp; CDED</button>
+</nav>
+
+<div class="phase-info-bar p1" id="phase-info-bar">Phase 1 (Weeks 1–6): Most restrictive. Lean proteins, white rice, white potato, peeled low-fiber fruits and vegetables only. No dairy, gluten, red meat, legumes, or processed foods.</div>
+
+<div class="week-tabs" id="week-tabs"></div>
+
+<div class="content">
+  <div id="meal-section">
+    <div class="main-layout">
+      <div class="days-col" id="days-col"></div>
+      <div class="sidebar" id="sidebar"></div>
+    </div>
+  </div>
+  <div id="cycle-section" style="display:none;"></div>
+</div>
+
+<script>
+const INFUSION_WEEKS = [1, 9, 17, 25]; // approximate week numbers for every-8-week cycle from week 1
+// infusion on week 1 day 1, then +8 weeks = week 9, +8 = week 17, +8 = week 25
+
+const DATA = {
+  1: {
+    label: "Phase 1", color: "p1",
+    info: "Phase 1 (Weeks 1–6): Most restrictive. Lean proteins, white rice, white potato, peeled low-fiber fruits and vegetables only. No dairy, gluten, red meat, legumes, or processed foods.",
+    note: "Peel all produce. Cook by baking, steaming, or boiling only. Use olive oil or canola oil. No seasoning blends, sauces, or additives. Confirm with your GI dietitian.",
+    weeks: [
+      { label:"Week 1", infusionDay:1, days:[
+        {name:"Monday",meals:[{t:"Breakfast",d:"Scrambled eggs, boiled potato, banana",c:390},{t:"Lunch",d:"Steamed chicken breast, white rice, peeled zucchini",c:420},{t:"Dinner",d:"Baked salmon, mashed potato, steamed carrots",c:480},{t:"Snack",d:"Peeled apple",c:80}]},
+        {name:"Tuesday",meals:[{t:"Breakfast",d:"Soft-boiled eggs, boiled potato, banana",c:380},{t:"Lunch",d:"Ground chicken, white rice, peeled cucumber",c:400},{t:"Dinner",d:"Baked cod, boiled potato, steamed zucchini",c:430},{t:"Snack",d:"Banana",c:90}]},
+        {name:"Wednesday",meals:[{t:"Breakfast",d:"Egg omelette, boiled potato, unsweetened applesauce",c:370},{t:"Lunch",d:"Steamed chicken, white rice, peeled zucchini",c:420},{t:"Dinner",d:"Baked salmon, mashed potato, steamed carrots",c:480},{t:"Snack",d:"Peeled pear",c:85}]},
+        {name:"Thursday",meals:[{t:"Breakfast",d:"Poached eggs, boiled potato, banana",c:380},{t:"Lunch",d:"Ground chicken, white rice, peeled cucumber",c:400},{t:"Dinner",d:"Baked tilapia, boiled potato, peeled zucchini",c:420},{t:"Snack",d:"Melon",c:70}]},
+        {name:"Friday",meals:[{t:"Breakfast",d:"Scrambled eggs, boiled potato, banana",c:390},{t:"Lunch",d:"Chicken breast, white rice, steamed carrots",c:430},{t:"Dinner",d:"Baked salmon, mashed potato, peeled zucchini",c:470},{t:"Snack",d:"Peeled apple",c:80}]},
+        {name:"Saturday",meals:[{t:"Breakfast",d:"Egg omelette, boiled potato, peeled apple slices",c:370},{t:"Lunch",d:"Ground chicken, white rice, steamed zucchini",c:410},{t:"Dinner",d:"Baked cod, boiled potato, steamed carrots",c:430},{t:"Snack",d:"Banana",c:90}]},
+        {name:"Sunday",meals:[{t:"Breakfast",d:"Soft-boiled eggs, mashed potato, banana",c:390},{t:"Lunch",d:"Baked chicken breast, white rice, peeled cucumber",c:420},{t:"Dinner",d:"Baked salmon, boiled potato, steamed carrots",c:470},{t:"Snack",d:"Melon",c:70}]}
+      ], grocery:{"Protein":["Eggs (1 dozen)","Chicken breast (2 lbs)","Ground chicken (1 lb)","Salmon fillets (3)","Cod or tilapia (2 fillets)"],"Carbs":["White potatoes (3 lbs)","White rice (2 lbs)"],"Vegetables":["Zucchini (4 medium)","Carrots (1 lb)","Cucumber (2 medium)"],"Fruits":["Bananas (6)","Apples (4)","Pears (2)","Melon (1 small)","Unsweetened applesauce (1 jar)"],"Pantry":["Olive oil","Salt"]}},
+      { label:"Week 2", infusionDay:null, days:[
+        {name:"Monday",meals:[{t:"Breakfast",d:"Poached eggs, boiled potato, banana",c:380},{t:"Lunch",d:"Baked chicken breast, white rice, steamed carrots",c:430},{t:"Dinner",d:"Baked salmon, mashed potato, peeled zucchini",c:470},{t:"Snack",d:"Peeled pear",c:85}]},
+        {name:"Tuesday",meals:[{t:"Breakfast",d:"Scrambled eggs, boiled potato, applesauce",c:370},{t:"Lunch",d:"Ground chicken, white rice, peeled cucumber",c:400},{t:"Dinner",d:"Baked tilapia, boiled potato, steamed carrots",c:420},{t:"Snack",d:"Banana",c:90}]},
+        {name:"Wednesday",meals:[{t:"Breakfast",d:"Soft-boiled eggs, mashed potato, banana",c:390},{t:"Lunch",d:"Steamed chicken, white rice, steamed zucchini",c:420},{t:"Dinner",d:"Baked cod, boiled potato, steamed carrots",c:430},{t:"Snack",d:"Melon",c:70}]},
+        {name:"Thursday",meals:[{t:"Breakfast",d:"Egg omelette, boiled potato, peeled apple",c:370},{t:"Lunch",d:"Ground chicken, white rice, peeled cucumber",c:400},{t:"Dinner",d:"Baked salmon, mashed potato, steamed carrots",c:480},{t:"Snack",d:"Banana",c:90}]},
+        {name:"Friday",meals:[{t:"Breakfast",d:"Scrambled eggs, boiled potato, banana",c:390},{t:"Lunch",d:"Baked chicken breast, white rice, peeled zucchini",c:420},{t:"Dinner",d:"Baked tilapia, boiled potato, steamed zucchini",c:410},{t:"Snack",d:"Peeled apple",c:80}]},
+        {name:"Saturday",meals:[{t:"Breakfast",d:"Poached eggs, boiled potato, applesauce",c:360},{t:"Lunch",d:"Steamed chicken, white rice, steamed carrots",c:430},{t:"Dinner",d:"Baked salmon, mashed potato, peeled cucumber",c:460},{t:"Snack",d:"Melon",c:70}]},
+        {name:"Sunday",meals:[{t:"Breakfast",d:"Soft-boiled eggs, boiled potato, banana",c:380},{t:"Lunch",d:"Ground chicken, white rice, peeled zucchini",c:410},{t:"Dinner",d:"Baked cod, mashed potato, steamed carrots",c:430},{t:"Snack",d:"Peeled pear",c:85}]}
+      ], grocery:{"Protein":["Eggs (1 dozen)","Chicken breast (2 lbs)","Ground chicken (1 lb)","Salmon fillets (3)","Tilapia or cod (2 fillets)"],"Carbs":["White potatoes (3 lbs)","White rice (1 lb)"],"Vegetables":["Zucchini (3 medium)","Carrots (1 lb)","Cucumber (2 medium)"],"Fruits":["Bananas (5)","Apples (3)","Pears (2)","Melon (1 small)","Unsweetened applesauce (1 jar)"],"Pantry":["Olive oil","Salt"]}},
+      { label:"Week 3", infusionDay:null, days:[
+        {name:"Monday",meals:[{t:"Breakfast",d:"Egg omelette, mashed potato, banana",c:380},{t:"Lunch",d:"Baked chicken breast, white rice, peeled cucumber",c:430},{t:"Dinner",d:"Baked salmon, boiled potato, steamed carrots",c:470},{t:"Snack",d:"Peeled apple",c:80}]},
+        {name:"Tuesday",meals:[{t:"Breakfast",d:"Scrambled eggs, boiled potato, unsweetened applesauce",c:370},{t:"Lunch",d:"Steamed chicken, white rice, steamed zucchini",c:420},{t:"Dinner",d:"Baked cod, mashed potato, steamed carrots",c:430},{t:"Snack",d:"Banana",c:90}]},
+        {name:"Wednesday",meals:[{t:"Breakfast",d:"Soft-boiled eggs, boiled potato, banana",c:380},{t:"Lunch",d:"Ground chicken, white rice, peeled cucumber",c:400},{t:"Dinner",d:"Baked tilapia, boiled potato, peeled zucchini",c:420},{t:"Snack",d:"Melon",c:70}]},
+        {name:"Thursday",meals:[{t:"Breakfast",d:"Poached eggs, mashed potato, peeled apple",c:370},{t:"Lunch",d:"Chicken breast, white rice, steamed carrots",c:430},{t:"Dinner",d:"Baked salmon, boiled potato, steamed zucchini",c:470},{t:"Snack",d:"Banana",c:90}]},
+        {name:"Friday",meals:[{t:"Breakfast",d:"Scrambled eggs, boiled potato, banana",c:390},{t:"Lunch",d:"Ground chicken, white rice, peeled zucchini",c:410},{t:"Dinner",d:"Baked cod, mashed potato, steamed carrots",c:430},{t:"Snack",d:"Peeled pear",c:85}]},
+        {name:"Saturday",meals:[{t:"Breakfast",d:"Egg omelette, boiled potato, unsweetened applesauce",c:360},{t:"Lunch",d:"Steamed chicken, white rice, peeled cucumber",c:420},{t:"Dinner",d:"Baked salmon, boiled potato, steamed carrots",c:470},{t:"Snack",d:"Melon",c:70}]},
+        {name:"Sunday",meals:[{t:"Breakfast",d:"Soft-boiled eggs, mashed potato, banana",c:390},{t:"Lunch",d:"Baked chicken breast, white rice, steamed zucchini",c:420},{t:"Dinner",d:"Baked tilapia, boiled potato, steamed carrots",c:420},{t:"Snack",d:"Peeled apple",c:80}]}
+      ], grocery:{"Protein":["Eggs (1 dozen)","Chicken breast (2 lbs)","Ground chicken (1 lb)","Salmon fillets (3)","Tilapia or cod (2 fillets)"],"Carbs":["White potatoes (3 lbs)","White rice (1 lb)"],"Vegetables":["Zucchini (4 medium)","Carrots (1 lb)","Cucumber (2 medium)"],"Fruits":["Bananas (5)","Apples (4)","Pears (2)","Melon (1 small)","Unsweetened applesauce (1 jar)"],"Pantry":["Olive oil","Salt"]}},
+      { label:"Week 4", infusionDay:null, days:[
+        {name:"Monday",meals:[{t:"Breakfast",d:"Scrambled eggs, boiled potato, banana",c:390},{t:"Lunch",d:"Steamed chicken, white rice, steamed carrots",c:430},{t:"Dinner",d:"Baked salmon, mashed potato, peeled zucchini",c:470},{t:"Snack",d:"Peeled pear",c:85}]},
+        {name:"Tuesday",meals:[{t:"Breakfast",d:"Soft-boiled eggs, mashed potato, peeled apple",c:375},{t:"Lunch",d:"Ground chicken, white rice, peeled cucumber",c:400},{t:"Dinner",d:"Baked cod, boiled potato, steamed carrots",c:430},{t:"Snack",d:"Banana",c:90}]},
+        {name:"Wednesday",meals:[{t:"Breakfast",d:"Poached eggs, boiled potato, banana",c:380},{t:"Lunch",d:"Baked chicken breast, white rice, steamed zucchini",c:420},{t:"Dinner",d:"Baked tilapia, mashed potato, steamed carrots",c:420},{t:"Snack",d:"Melon",c:70}]},
+        {name:"Thursday",meals:[{t:"Breakfast",d:"Egg omelette, boiled potato, unsweetened applesauce",c:365},{t:"Lunch",d:"Ground chicken, white rice, peeled cucumber",c:400},{t:"Dinner",d:"Baked salmon, boiled potato, steamed carrots",c:470},{t:"Snack",d:"Banana",c:90}]},
+        {name:"Friday",meals:[{t:"Breakfast",d:"Scrambled eggs, mashed potato, banana",c:390},{t:"Lunch",d:"Steamed chicken, white rice, peeled zucchini",c:420},{t:"Dinner",d:"Baked cod, boiled potato, steamed carrots",c:430},{t:"Snack",d:"Peeled apple",c:80}]},
+        {name:"Saturday",meals:[{t:"Breakfast",d:"Soft-boiled eggs, boiled potato, peeled pear",c:370},{t:"Lunch",d:"Baked chicken breast, white rice, steamed carrots",c:430},{t:"Dinner",d:"Baked salmon, mashed potato, peeled cucumber",c:460},{t:"Snack",d:"Melon",c:70}]},
+        {name:"Sunday",meals:[{t:"Breakfast",d:"Poached eggs, boiled potato, banana",c:380},{t:"Lunch",d:"Ground chicken, white rice, steamed zucchini",c:410},{t:"Dinner",d:"Baked tilapia, mashed potato, steamed carrots",c:420},{t:"Snack",d:"Peeled apple",c:80}]}
+      ], grocery:{"Protein":["Eggs (1 dozen)","Chicken breast (2 lbs)","Ground chicken (1 lb)","Salmon fillets (3)","Tilapia or cod (2 fillets)"],"Carbs":["White potatoes (3 lbs)","White rice (1 lb)"],"Vegetables":["Zucchini (3 medium)","Carrots (1 lb)","Cucumber (2 medium)"],"Fruits":["Bananas (5)","Apples (3)","Pears (2)","Melon (1 small)","Unsweetened applesauce (1 jar)"],"Pantry":["Olive oil","Salt"]}},
+      { label:"Week 5", infusionDay:null, days:[
+        {name:"Monday",meals:[{t:"Breakfast",d:"Egg omelette, boiled potato, banana",c:380},{t:"Lunch",d:"Baked chicken breast, white rice, steamed zucchini",c:420},{t:"Dinner",d:"Baked salmon, boiled potato, steamed carrots",c:470},{t:"Snack",d:"Peeled pear",c:85}]},
+        {name:"Tuesday",meals:[{t:"Breakfast",d:"Scrambled eggs, mashed potato, applesauce",c:365},{t:"Lunch",d:"Ground chicken, white rice, peeled cucumber",c:400},{t:"Dinner",d:"Baked cod, boiled potato, steamed zucchini",c:430},{t:"Snack",d:"Banana",c:90}]},
+        {name:"Wednesday",meals:[{t:"Breakfast",d:"Soft-boiled eggs, boiled potato, banana",c:380},{t:"Lunch",d:"Steamed chicken, white rice, steamed carrots",c:430},{t:"Dinner",d:"Baked tilapia, mashed potato, peeled zucchini",c:420},{t:"Snack",d:"Melon",c:70}]},
+        {name:"Thursday",meals:[{t:"Breakfast",d:"Poached eggs, boiled potato, peeled apple",c:370},{t:"Lunch",d:"Baked chicken breast, white rice, peeled cucumber",c:420},{t:"Dinner",d:"Baked salmon, boiled potato, steamed carrots",c:470},{t:"Snack",d:"Banana",c:90}]},
+        {name:"Friday",meals:[{t:"Breakfast",d:"Scrambled eggs, boiled potato, banana",c:390},{t:"Lunch",d:"Ground chicken, white rice, steamed zucchini",c:410},{t:"Dinner",d:"Baked cod, mashed potato, steamed carrots",c:430},{t:"Snack",d:"Peeled apple",c:80}]},
+        {name:"Saturday",meals:[{t:"Breakfast",d:"Egg omelette, mashed potato, peeled pear",c:370},{t:"Lunch",d:"Steamed chicken, white rice, steamed carrots",c:430},{t:"Dinner",d:"Baked salmon, boiled potato, steamed zucchini",c:460},{t:"Snack",d:"Melon",c:70}]},
+        {name:"Sunday",meals:[{t:"Breakfast",d:"Soft-boiled eggs, boiled potato, banana",c:380},{t:"Lunch",d:"Ground chicken, white rice, peeled cucumber",c:400},{t:"Dinner",d:"Baked tilapia, mashed potato, steamed carrots",c:420},{t:"Snack",d:"Peeled apple",c:80}]}
+      ], grocery:{"Protein":["Eggs (1 dozen)","Chicken breast (2 lbs)","Ground chicken (1 lb)","Salmon fillets (3)","Tilapia or cod (2 fillets)"],"Carbs":["White potatoes (3 lbs)","White rice (1 lb)"],"Vegetables":["Zucchini (4 medium)","Carrots (1 lb)","Cucumber (2 medium)"],"Fruits":["Bananas (5)","Apples (3)","Pears (2)","Melon (1 small)","Unsweetened applesauce (1 jar)"],"Pantry":["Olive oil","Salt"]}},
+      { label:"Week 6", infusionDay:null, days:[
+        {name:"Monday",meals:[{t:"Breakfast",d:"Scrambled eggs, boiled potato, banana",c:390},{t:"Lunch",d:"Baked chicken breast, white rice, peeled zucchini",c:420},{t:"Dinner",d:"Baked salmon, mashed potato, steamed carrots",c:470},{t:"Snack",d:"Peeled apple",c:80}]},
+        {name:"Tuesday",meals:[{t:"Breakfast",d:"Poached eggs, mashed potato, banana",c:380},{t:"Lunch",d:"Steamed chicken, white rice, peeled cucumber",c:420},{t:"Dinner",d:"Baked cod, boiled potato, steamed carrots",c:430},{t:"Snack",d:"Pear",c:85}]},
+        {name:"Wednesday",meals:[{t:"Breakfast",d:"Egg omelette, boiled potato, unsweetened applesauce",c:365},{t:"Lunch",d:"Ground chicken, white rice, steamed zucchini",c:410},{t:"Dinner",d:"Baked tilapia, boiled potato, steamed carrots",c:420},{t:"Snack",d:"Banana",c:90}]},
+        {name:"Thursday",meals:[{t:"Breakfast",d:"Soft-boiled eggs, boiled potato, peeled apple",c:375},{t:"Lunch",d:"Baked chicken breast, white rice, steamed carrots",c:430},{t:"Dinner",d:"Baked salmon, mashed potato, peeled zucchini",c:460},{t:"Snack",d:"Melon",c:70}]},
+        {name:"Friday",meals:[{t:"Breakfast",d:"Scrambled eggs, mashed potato, banana",c:390},{t:"Lunch",d:"Ground chicken, white rice, peeled cucumber",c:400},{t:"Dinner",d:"Baked cod, boiled potato, steamed carrots",c:430},{t:"Snack",d:"Peeled apple",c:80}]},
+        {name:"Saturday",meals:[{t:"Breakfast",d:"Poached eggs, boiled potato, applesauce",c:360},{t:"Lunch",d:"Steamed chicken, white rice, steamed zucchini",c:420},{t:"Dinner",d:"Baked salmon, mashed potato, steamed carrots",c:470},{t:"Snack",d:"Banana",c:90}]},
+        {name:"Sunday",meals:[{t:"Breakfast",d:"Egg omelette, boiled potato, peeled pear",c:365},{t:"Lunch",d:"Baked chicken breast, white rice, peeled zucchini",c:420},{t:"Dinner",d:"Baked tilapia, boiled potato, steamed carrots",c:420},{t:"Snack",d:"Melon",c:70}]}
+      ], grocery:{"Protein":["Eggs (1 dozen)","Chicken breast (2 lbs)","Ground chicken (1 lb)","Salmon fillets (3)","Tilapia or cod (2 fillets)"],"Carbs":["White potatoes (3 lbs)","White rice (1 lb)"],"Vegetables":["Zucchini (3 medium)","Carrots (1 lb)","Cucumber (2 medium)"],"Fruits":["Bananas (4)","Apples (3)","Pears (2)","Melon (1 small)","Unsweetened applesauce (1 jar)"],"Pantry":["Olive oil","Salt"]}}
+    ]
+  },
+  2: {
+    label: "Phase 2", color: "p2",
+    info: "Phase 2 (Weeks 7–12): Expanded diet. Reintroduce whole grains (oats, brown rice, whole wheat), legumes, more vegetables, and low-fat dairy if tolerated. Still no processed foods or red meat.",
+    note: "Introduce new foods one at a time and monitor symptoms for 2–3 days before adding another. Continue avoiding processed foods, fried food, and red meat. Check in with your GI dietitian.",
+    weeks: [
+      { label:"Week 7", infusionDay:1, days:[
+        {name:"Monday",meals:[{t:"Breakfast",d:"Oatmeal, banana, honey",c:380},{t:"Lunch",d:"Chicken breast, lentil soup, whole wheat roll",c:520},{t:"Dinner",d:"Baked salmon, quinoa, steamed broccoli",c:530},{t:"Snack",d:"Low-fat yogurt",c:120}]},
+        {name:"Tuesday",meals:[{t:"Breakfast",d:"Scrambled eggs, whole wheat toast, orange",c:410},{t:"Lunch",d:"Chicken & chickpea salad, olive oil dressing",c:510},{t:"Dinner",d:"Baked cod, brown rice, steamed zucchini & carrots",c:480},{t:"Snack",d:"Apple",c:80}]},
+        {name:"Wednesday",meals:[{t:"Breakfast",d:"Oatmeal, blueberries, banana",c:370},{t:"Lunch",d:"Steamed chicken, white rice, sautéed spinach",c:450},{t:"Dinner",d:"Baked salmon, sweet potato, steamed green beans",c:540},{t:"Snack",d:"Low-fat yogurt",c:120}]},
+        {name:"Thursday",meals:[{t:"Breakfast",d:"Scrambled eggs, oat toast, banana",c:420},{t:"Lunch",d:"Ground chicken, lentils, steamed carrots",c:500},{t:"Dinner",d:"Baked tilapia, quinoa, steamed broccoli",c:490},{t:"Snack",d:"Peeled apple",c:80}]},
+        {name:"Friday",meals:[{t:"Breakfast",d:"Oatmeal, honey, peeled pear",c:360},{t:"Lunch",d:"Chicken breast, whole wheat wrap, cucumber",c:510},{t:"Dinner",d:"Baked salmon, brown rice, steamed carrots",c:530},{t:"Snack",d:"Banana",c:90}]},
+        {name:"Saturday",meals:[{t:"Breakfast",d:"Scrambled eggs, whole wheat toast, blueberries",c:410},{t:"Lunch",d:"Chickpea & vegetable soup, whole grain roll",c:490},{t:"Dinner",d:"Baked cod, sweet potato, steamed green beans",c:500},{t:"Snack",d:"Low-fat yogurt",c:120}]},
+        {name:"Sunday",meals:[{t:"Breakfast",d:"Oatmeal, banana, honey",c:370},{t:"Lunch",d:"Steamed chicken, brown rice, sautéed spinach",c:460},{t:"Dinner",d:"Baked salmon, quinoa, steamed broccoli & carrots",c:540},{t:"Snack",d:"Peeled apple",c:80}]}
+      ], grocery:{"Protein":["Eggs (1 dozen)","Chicken breast (2 lbs)","Ground chicken (1 lb)","Salmon fillets (3)","Cod or tilapia (2 fillets)"],"Grains":["Rolled oats (1 lb)","Whole wheat bread (1 loaf)","Brown rice (1 lb)","Quinoa (1 lb)"],"Legumes":["Canned lentils (2 cans)","Canned chickpeas (1 can)"],"Vegetables":["Zucchini (2)","Carrots (1 lb)","Broccoli (1 head)","Spinach (1 bag)","Green beans (1 lb)","Sweet potatoes (2)","Cucumber (1)"],"Fruits":["Bananas (5)","Apples (4)","Pears (2)","Blueberries (1 pint)","Oranges (2)"],"Dairy":["Low-fat yogurt (4 cups)"],"Pantry":["Olive oil","Honey","Salt"]}},
+      { label:"Week 8", infusionDay:null, days:[
+        {name:"Monday",meals:[{t:"Breakfast",d:"Oatmeal, sliced banana, cinnamon",c:360},{t:"Lunch",d:"Chicken & vegetable soup, whole grain roll",c:510},{t:"Dinner",d:"Baked salmon, quinoa, roasted zucchini",c:530},{t:"Snack",d:"Low-fat yogurt",c:120}]},
+        {name:"Tuesday",meals:[{t:"Breakfast",d:"Scrambled eggs, whole wheat toast, blueberries",c:400},{t:"Lunch",d:"Ground chicken, lentils, steamed carrots",c:490},{t:"Dinner",d:"Baked cod, brown rice, steamed broccoli",c:470},{t:"Snack",d:"Apple",c:80}]},
+        {name:"Wednesday",meals:[{t:"Breakfast",d:"Oatmeal, honey, orange slices",c:370},{t:"Lunch",d:"Chicken breast, chickpea salad, olive oil",c:510},{t:"Dinner",d:"Baked tilapia, sweet potato, sautéed spinach",c:490},{t:"Snack",d:"Banana",c:90}]},
+        {name:"Thursday",meals:[{t:"Breakfast",d:"Scrambled eggs, oat toast, banana",c:420},{t:"Lunch",d:"Steamed chicken, brown rice, steamed green beans",c:450},{t:"Dinner",d:"Baked salmon, quinoa, steamed carrots",c:530},{t:"Snack",d:"Low-fat yogurt",c:120}]},
+        {name:"Friday",meals:[{t:"Breakfast",d:"Oatmeal, blueberries, honey",c:360},{t:"Lunch",d:"Ground chicken wrap, whole wheat, cucumber",c:500},{t:"Dinner",d:"Baked cod, brown rice, roasted zucchini",c:460},{t:"Snack",d:"Peeled pear",c:85}]},
+        {name:"Saturday",meals:[{t:"Breakfast",d:"Scrambled eggs, whole wheat toast, orange",c:400},{t:"Lunch",d:"Lentil soup, whole grain roll, side salad",c:510},{t:"Dinner",d:"Baked salmon, sweet potato, steamed broccoli",c:540},{t:"Snack",d:"Apple",c:80}]},
+        {name:"Sunday",meals:[{t:"Breakfast",d:"Oatmeal, banana, cinnamon",c:360},{t:"Lunch",d:"Chicken breast, quinoa, sautéed spinach",c:480},{t:"Dinner",d:"Baked tilapia, brown rice, steamed carrots",c:450},{t:"Snack",d:"Low-fat yogurt",c:120}]}
+      ], grocery:{"Protein":["Eggs (1 dozen)","Chicken breast (2 lbs)","Ground chicken (1 lb)","Salmon fillets (3)","Tilapia or cod (2 fillets)"],"Grains":["Rolled oats (1 lb)","Whole wheat bread (1 loaf)","Brown rice (1 lb)","Quinoa (1 lb)"],"Legumes":["Canned lentils (2 cans)","Canned chickpeas (1 can)"],"Vegetables":["Zucchini (2)","Carrots (1 lb)","Broccoli (1 head)","Spinach (1 bag)","Green beans (1 lb)","Sweet potatoes (2)","Cucumber (1)"],"Fruits":["Bananas (4)","Apples (3)","Pears (2)","Blueberries (1 pint)","Oranges (2)"],"Dairy":["Low-fat yogurt (4 cups)"],"Pantry":["Olive oil","Honey","Salt","Cinnamon"]}},
+      { label:"Week 9", infusionDay:1, days:[
+        {name:"Monday",meals:[{t:"Breakfast",d:"Oatmeal, mixed berries, banana",c:380},{t:"Lunch",d:"Chicken breast, chickpea salad, whole grain roll",c:530},{t:"Dinner",d:"Baked salmon, quinoa, roasted sweet potato",c:560},{t:"Snack",d:"Low-fat yogurt",c:120}]},
+        {name:"Tuesday",meals:[{t:"Breakfast",d:"Scrambled eggs, whole wheat toast, blueberries",c:405},{t:"Lunch",d:"Ground chicken, brown rice, steamed broccoli",c:480},{t:"Dinner",d:"Baked cod, lentils, steamed carrots",c:490},{t:"Snack",d:"Apple",c:80}]},
+        {name:"Wednesday",meals:[{t:"Breakfast",d:"Oatmeal, banana, honey",c:370},{t:"Lunch",d:"Steamed chicken, quinoa, sautéed spinach",c:470},{t:"Dinner",d:"Baked salmon, brown rice, steamed green beans",c:530},{t:"Snack",d:"Low-fat yogurt",c:120}]},
+        {name:"Thursday",meals:[{t:"Breakfast",d:"Scrambled eggs, oat toast, orange",c:410},{t:"Lunch",d:"Chicken & lentil soup, whole wheat roll",c:510},{t:"Dinner",d:"Baked tilapia, quinoa, roasted zucchini",c:480},{t:"Snack",d:"Banana",c:90}]},
+        {name:"Friday",meals:[{t:"Breakfast",d:"Oatmeal, blueberries, honey",c:360},{t:"Lunch",d:"Ground chicken wrap, whole wheat, spinach",c:500},{t:"Dinner",d:"Baked salmon, sweet potato, steamed broccoli",c:540},{t:"Snack",d:"Peeled pear",c:85}]},
+        {name:"Saturday",meals:[{t:"Breakfast",d:"Scrambled eggs, whole wheat toast, banana",c:410},{t:"Lunch",d:"Chickpea & vegetable soup, whole grain roll",c:490},{t:"Dinner",d:"Baked cod, brown rice, sautéed spinach",c:470},{t:"Snack",d:"Apple",c:80}]},
+        {name:"Sunday",meals:[{t:"Breakfast",d:"Oatmeal, honey, cinnamon, banana",c:380},{t:"Lunch",d:"Steamed chicken, brown rice, steamed carrots",c:460},{t:"Dinner",d:"Baked salmon, quinoa, roasted zucchini",c:530},{t:"Snack",d:"Low-fat yogurt",c:120}]}
+      ], grocery:{"Protein":["Eggs (1 dozen)","Chicken breast (2 lbs)","Ground chicken (1 lb)","Salmon fillets (3)","Tilapia or cod (2 fillets)"],"Grains":["Rolled oats (1 lb)","Whole wheat bread (1 loaf)","Brown rice (1 lb)","Quinoa (1 lb)"],"Legumes":["Canned lentils (2 cans)","Canned chickpeas (1 can)"],"Vegetables":["Zucchini (2)","Carrots (1 lb)","Broccoli (1 head)","Spinach (1 bag)","Green beans (1 lb)","Sweet potatoes (2)"],"Fruits":["Bananas (5)","Apples (3)","Pears (2)","Blueberries (1 pint)","Oranges (2)"],"Dairy":["Low-fat yogurt (4 cups)"],"Pantry":["Olive oil","Honey","Salt","Cinnamon"]}}
+    ]
+  },
+  3: {
+    label: "Phase 3", color: "p3",
+    info: "Phase 3 (Weeks 13+): Mediterranean-style maintenance. Reintroduce most whole foods including avocado, nuts, Greek yogurt, turkey, and occasional lean red meat. Avoid ultra-processed foods.",
+    note: "Red meat limited to 1–2x per week maximum. Continue avoiding fried food and ultra-processed snacks. Introduce new foods gradually and track symptoms. Keep monitoring with your care team.",
+    weeks: [
+      { label:"Week 13", infusionDay:1, days:[
+        {name:"Monday",meals:[{t:"Breakfast",d:"Greek yogurt, mixed berries, granola, honey",c:430},{t:"Lunch",d:"Grilled chicken, farro, roasted vegetables",c:580},{t:"Dinner",d:"Baked salmon, roasted sweet potato, sautéed kale",c:590},{t:"Snack",d:"Almonds & apple",c:200}]},
+        {name:"Tuesday",meals:[{t:"Breakfast",d:"Scrambled eggs, whole wheat toast, avocado",c:480},{t:"Lunch",d:"Lentil & vegetable stew, whole grain bread",c:560},{t:"Dinner",d:"Baked cod, brown rice, roasted broccoli & carrots",c:520},{t:"Snack",d:"Low-fat yogurt & banana",c:190}]},
+        {name:"Wednesday",meals:[{t:"Breakfast",d:"Oatmeal, walnuts, blueberries, banana",c:450},{t:"Lunch",d:"Chicken & chickpea salad, olive oil & lemon",c:550},{t:"Dinner",d:"Baked tilapia, quinoa, roasted zucchini & tomatoes",c:530},{t:"Snack",d:"Apple & peanut butter",c:200}]},
+        {name:"Thursday",meals:[{t:"Breakfast",d:"Greek yogurt, granola, mixed berries",c:420},{t:"Lunch",d:"Turkey & avocado wrap, whole wheat, side salad",c:570},{t:"Dinner",d:"Baked salmon, farro, steamed green beans",c:590},{t:"Snack",d:"Walnuts & pear",c:210}]},
+        {name:"Friday",meals:[{t:"Breakfast",d:"Scrambled eggs, whole wheat toast, tomato, spinach",c:460},{t:"Lunch",d:"Chicken breast, quinoa, roasted vegetables",c:560},{t:"Dinner",d:"Grilled white fish, brown rice, Mediterranean salad",c:560},{t:"Snack",d:"Low-fat yogurt",c:120}]},
+        {name:"Saturday",meals:[{t:"Breakfast",d:"Avocado toast, poached eggs, cherry tomatoes",c:490},{t:"Lunch",d:"Chickpea & vegetable soup, whole grain roll",c:530},{t:"Dinner",d:"Baked salmon, roasted sweet potato, sautéed spinach",c:590},{t:"Snack",d:"Mixed nuts & apple",c:210}]},
+        {name:"Sunday",meals:[{t:"Breakfast",d:"Oatmeal, almond butter, banana, honey",c:460},{t:"Lunch",d:"Turkey & lentil soup, whole wheat bread",c:550},{t:"Dinner",d:"Lean lamb chop (small), roasted vegetables, quinoa",c:600},{t:"Snack",d:"Greek yogurt & berries",c:160}]}
+      ], grocery:{"Protein":["Eggs (1 dozen)","Chicken breast (1.5 lbs)","Salmon fillets (3)","Cod or tilapia (2 fillets)","Turkey breast (1 lb)","Lean lamb chop (1)"],"Grains":["Rolled oats (1 lb)","Whole wheat bread (1 loaf)","Brown rice (1 lb)","Quinoa (1 lb)","Farro (1 lb)","Granola (1 bag)"],"Legumes":["Canned lentils (2 cans)","Canned chickpeas (2 cans)"],"Vegetables":["Zucchini (2)","Carrots (1 lb)","Broccoli (1 head)","Spinach (1 bag)","Kale (1 bunch)","Green beans (1 lb)","Sweet potatoes (3)","Cherry tomatoes (1 pint)","Mixed salad greens (1 bag)"],"Fruits":["Bananas (4)","Apples (4)","Pears (2)","Blueberries (1 pint)","Mixed berries (1 bag)"],"Dairy & Fats":["Greek yogurt (4 cups)","Avocados (3)","Almonds (1 bag)","Walnuts (1 bag)","Peanut butter","Almond butter"],"Pantry":["Olive oil","Honey","Lemon","Salt","Cinnamon"]}},
+      { label:"Week 14", infusionDay:null, days:[
+        {name:"Monday",meals:[{t:"Breakfast",d:"Greek yogurt, granola, sliced banana",c:420},{t:"Lunch",d:"Grilled chicken, farro, roasted broccoli",c:570},{t:"Dinner",d:"Baked salmon, quinoa, roasted zucchini & tomatoes",c:570},{t:"Snack",d:"Apple & almonds",c:200}]},
+        {name:"Tuesday",meals:[{t:"Breakfast",d:"Avocado toast, scrambled eggs, cherry tomatoes",c:490},{t:"Lunch",d:"Chickpea salad, whole wheat pita, olive oil",c:540},{t:"Dinner",d:"Baked cod, brown rice, sautéed kale & carrots",c:510},{t:"Snack",d:"Greek yogurt & berries",c:160}]},
+        {name:"Wednesday",meals:[{t:"Breakfast",d:"Oatmeal, walnuts, blueberries",c:430},{t:"Lunch",d:"Turkey wrap, whole wheat, spinach, avocado",c:560},{t:"Dinner",d:"Baked tilapia, sweet potato, steamed green beans",c:510},{t:"Snack",d:"Pear & peanut butter",c:190}]},
+        {name:"Thursday",meals:[{t:"Breakfast",d:"Scrambled eggs, whole wheat toast, spinach",c:440},{t:"Lunch",d:"Lentil soup, whole grain roll, side salad",c:530},{t:"Dinner",d:"Baked salmon, farro, roasted vegetables",c:590},{t:"Snack",d:"Handful of almonds",c:160}]},
+        {name:"Friday",meals:[{t:"Breakfast",d:"Greek yogurt, mixed berries, honey, granola",c:430},{t:"Lunch",d:"Chicken breast, quinoa, roasted sweet potato",c:580},{t:"Dinner",d:"Grilled white fish, brown rice, Mediterranean salad",c:550},{t:"Snack",d:"Banana & almond butter",c:200}]},
+        {name:"Saturday",meals:[{t:"Breakfast",d:"Oatmeal, banana, honey, cinnamon",c:380},{t:"Lunch",d:"Chicken & vegetable stew, whole grain bread",c:560},{t:"Dinner",d:"Baked salmon, quinoa, sautéed spinach & zucchini",c:570},{t:"Snack",d:"Apple & walnuts",c:200}]},
+        {name:"Sunday",meals:[{t:"Breakfast",d:"Avocado toast, poached eggs, tomato",c:480},{t:"Lunch",d:"Turkey & lentil soup, whole grain roll",c:540},{t:"Dinner",d:"Lean chicken thigh, roasted root vegetables, farro",c:590},{t:"Snack",d:"Greek yogurt & banana",c:200}]}
+      ], grocery:{"Protein":["Eggs (1 dozen)","Chicken breast (1.5 lbs)","Chicken thigh (2)","Salmon fillets (3)","Cod or tilapia (2 fillets)","Turkey breast (1 lb)"],"Grains":["Rolled oats (1 lb)","Whole wheat bread (1 loaf)","Whole wheat pita (1 pack)","Brown rice (1 lb)","Quinoa (1 lb)","Farro (1 lb)","Granola (1 bag)"],"Legumes":["Canned lentils (2 cans)","Canned chickpeas (1 can)"],"Vegetables":["Zucchini (2)","Carrots (1 lb)","Broccoli (1 head)","Spinach (1 bag)","Kale (1 bunch)","Green beans (1 lb)","Sweet potatoes (2)","Cherry tomatoes (1 pint)","Mixed salad greens (1 bag)"],"Fruits":["Bananas (5)","Apples (4)","Pears (2)","Blueberries (1 pint)","Mixed berries (1 bag)"],"Dairy & Fats":["Greek yogurt (4 cups)","Avocados (3)","Almonds (1 bag)","Walnuts (1 bag)","Peanut butter","Almond butter"],"Pantry":["Olive oil","Honey","Lemon","Salt","Cinnamon"]}}
+    ]
+  }
+};
+
+let currentPhase = 1;
+let currentWeek = 0;
+
+function setPhase(p) {
+  currentPhase = p;
+  currentWeek = 0;
+  document.querySelectorAll('.phase-tab').forEach((b,i) => {
+    b.classList.remove('active-p1','active-p2','active-p3');
+  });
+  if (p <= 3) {
+    document.querySelectorAll('.phase-tab')[p-1].classList.add('active-p'+p);
+    document.getElementById('meal-section').style.display = '';
+    document.getElementById('cycle-section').style.display = 'none';
+    render();
+  } else {
+    document.querySelectorAll('.phase-tab')[3].style.borderBottomColor = 'var(--terracotta)';
+    document.getElementById('meal-section').style.display = 'none';
+    document.getElementById('cycle-section').style.display = '';
+    renderCycle();
+  }
+}
+
+function setWeek(w) {
+  currentWeek = w;
+  render();
+}
+
+function render() {
+  const phase = DATA[currentPhase];
+  const col = phase.color;
+  const week = phase.weeks[currentWeek];
+
+  const pib = document.getElementById('phase-info-bar');
+  pib.className = 'phase-info-bar ' + col;
+  pib.textContent = phase.info;
+
+  const wt = document.getElementById('week-tabs');
+  wt.innerHTML = phase.weeks.map((w,i) =>
+    `<button class="wtab${i===currentWeek?' active':''}" onclick="setWeek(${i})">${w.label}${w.infusionDay ? ' &#128137;' : ''}</button>`
+  ).join('');
+
+  const dc = document.getElementById('days-col');
+  const weekOffset = phase.weeks.slice(0,currentWeek).length;
+  const phaseOffset = currentPhase === 1 ? 0 : currentPhase === 2 ? 6 : 12;
+
+  dc.innerHTML = week.days.map((day, di) => {
+    const total = day.meals.reduce((s,m) => s+m.c, 0);
+    const globalWeekNum = phaseOffset + currentWeek + 1;
+    const dayNum = (phaseOffset + currentWeek) * 7 + di + 1;
+    const isInfusionDay = week.infusionDay === (di + 1);
+    return `<div class="day-card">
+      <div class="day-head ${col}">
+        <span class="day-num">Day ${dayNum}</span>
+        <span class="day-name-label">${day.name}</span>
+        ${isInfusionDay ? '<span class="infusion-day-tag">&#128137; Infusion day</span>' : ''}
+        <span class="day-cal-badge">~${total} kcal</span>
+      </div>
+      <div class="meals-grid">
+        ${day.meals.map(m => `<div class="meal-cell">
+          <div class="meal-type">${m.t}</div>
+          <div class="meal-desc">${m.d}</div>
+          <div class="meal-cal">~${m.c} kcal</div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  const totals = week.days.map(d => d.meals.reduce((s,m)=>s+m.c,0));
+  const avg = Math.round(totals.reduce((a,b)=>a+b,0)/totals.length);
+  const mn = Math.min(...totals);
+  const mx = Math.max(...totals);
+
+  const sb = document.getElementById('sidebar');
+  let ghtml = `<div class="cal-card"><div class="cal-head ${col}">Calorie summary — ${week.label}</div><div class="cal-body">
+    <div class="cal-row"><span>Daily average</span><span>~${avg} kcal</span></div>
+    <div class="cal-row"><span>Lowest day</span><span>~${mn} kcal</span></div>
+    <div class="cal-row"><span>Highest day</span><span>~${mx} kcal</span></div>
+    <div class="cal-total"><span>Weekly total</span><span>~${(avg*7).toLocaleString()} kcal</span></div>
+  </div></div>`;
+
+  if (week.infusionDay) {
+    ghtml += `<div class="infusion-card"><h4>&#128137; Infusion week tips</h4><p>Your infliximab infusion falls on <strong>${week.days[week.infusionDay-1].name}</strong> this week. Stay well hydrated the day before and after. Keep meals light and easy to digest on infusion day — the plan already reflects this. Rest as needed after your appointment.</p></div>`;
+  }
+
+  ghtml += `<div class="grocery-card"><div class="grocery-head ${col}">Grocery list — ${week.label}</div><div class="grocery-body">`;
+  let idx = 0;
+  Object.entries(week.grocery).forEach(([cat, items]) => {
+    ghtml += `<div class="g-section"><div class="g-cat">${cat}</div>`;
+    items.forEach(item => {
+      const id = `g-${currentPhase}-${currentWeek}-${idx++}`;
+      ghtml += `<div class="g-item" id="wrap-${id}"><input type="checkbox" id="${id}" onchange="toggleItem('${id}')"><label for="${id}">${item}</label></div>`;
+    });
+    ghtml += `</div>`;
+  });
+  ghtml += `</div></div>`;
+  ghtml += `<div class="note-card ${col}">${phase.note}</div>`;
+  sb.innerHTML = ghtml;
+}
+
+function toggleItem(id) {
+  const cb = document.getElementById(id);
+  document.getElementById('wrap-'+id).classList.toggle('checked', cb.checked);
+}
+
+function renderCycle() {
+  const pib = document.getElementById('phase-info-bar');
+  pib.className = 'phase-info-bar';
+  pib.style.background = 'var(--terracotta-light)';
+  pib.style.color = 'var(--terracotta)';
+  pib.textContent = 'How your infliximab every-8-week cycle works alongside the CDED phases.';
+
+  const wt = document.getElementById('week-tabs');
+  wt.innerHTML = '';
+
+  document.getElementById('cycle-section').innerHTML = `
+  <div class="cycle-section">
+    <div class="cycle-head">&#128137; Your infliximab (Remicade) every-8-week cycle &amp; CDED</div>
+    <div class="cycle-body">
+      <p style="font-size:13px;line-height:1.7;color:var(--charcoal);">
+        You've been on infliximab for years on a stable every-8-week maintenance schedule — that's a great sign your body responds well to it. Here's how that fits alongside CDED:
+      </p>
+
+      <div style="margin:1rem 0;">
+        <div style="font-size:12px;font-weight:500;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.08em;">Timeline overview</div>
+        <div class="timeline">
+          <div class="tl-seg s-p1"><div class="tl-label">Phase 1</div><div class="tl-sub">Wks 1–6</div></div>
+          <div class="tl-seg s-inf"><div class="tl-label">&#128137; Infusion</div><div class="tl-sub">Wk 1, 9, 17...</div></div>
+          <div class="tl-seg s-p2"><div class="tl-label">Phase 2</div><div class="tl-sub">Wks 7–12</div></div>
+          <div class="tl-seg s-p3"><div class="tl-label">Phase 3</div><div class="tl-sub">Wks 13+</div></div>
+        </div>
+      </div>
+
+      <div class="cycle-grid">
+        <div class="cycle-card highlight">
+          <h5>&#128137; Infusion day itself</h5>
+          <p>Eat a light, easy breakfast before your appointment — scrambled eggs and boiled potato works well. Bring a banana or applesauce as a snack. Drink plenty of water. Avoid anything heavy, fatty, or new. Rest after.</p>
+        </div>
+        <div class="cycle-card">
+          <h5>Day before infusion</h5>
+          <p>Stick to familiar, well-tolerated foods. Hydrate well. Avoid introducing any new foods that week. A good night's sleep helps your body respond better to the infusion.</p>
+        </div>
+        <div class="cycle-card">
+          <h5>Day after infusion</h5>
+          <p>Some people feel mildly fatigued for 24–48 hours. Keep meals simple and comforting. This is not the time to try a new Phase 2 or 3 food. Resume your normal plan once you feel well.</p>
+        </div>
+        <div class="cycle-card">
+          <h5>Do they work together?</h5>
+          <p>Yes — very well. Infliximab suppresses inflammation systemically. CDED reduces dietary triggers of gut inflammation. Together they give your gut both pharmaceutical and nutritional support, which studies show can improve and sustain remission.</p>
+        </div>
+        <div class="cycle-card">
+          <h5>Phase timing with infusions</h5>
+          <p>Your infusions fall roughly at weeks 1, 9, and 17 of a new CDED cycle. Week 9 lands in Phase 2 — a good time since your diet is less restrictive and you're more stable. Week 17 is Phase 3 maintenance.</p>
+        </div>
+        <div class="cycle-card">
+          <h5>What to tell your GI team</h5>
+          <p>Let your gastroenterologist know you're following CDED alongside infliximab. They can monitor CRP, fecal calprotectin, and symptoms to assess how well the combination is working for you.</p>
+        </div>
+        <div class="cycle-card">
+          <h5>Signs the combo is working</h5>
+          <p>Reduced abdominal pain and cramping, fewer bathroom trips, improved energy, lower inflammation markers on bloodwork, and being able to advance through CDED phases without flares.</p>
+        </div>
+        <div class="cycle-card">
+          <h5>If you flare around an infusion</h5>
+          <p>Step back to Phase 1 foods temporarily. Stay hydrated. Contact your GI team — a flare near infusion time may mean your drug levels need checking or dosing adjustment.</p>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+render();
+</script>
+</body>
+</html>
